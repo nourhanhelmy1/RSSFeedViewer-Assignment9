@@ -1,0 +1,26 @@
+﻿@page
+@model RenderingRSS.Pages.FavoriteFeedsModel
+@{
+    ViewData["Title"] = "Favorite Feeds";
+}
+
+<h1 class="mt-4">Favorite Feeds</h1>
+
+@if (Model.FavoriteFeeds.Count > 0)
+{
+    <div class="card-deck">
+        @foreach (var feed in Model.FavoriteFeeds)
+        {
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Starred Feed</h5>
+                    <a href="@feed" class="btn btn-primary" target="_blank">Open Feed</a>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <p>No favorite feeds found.</p>
+}

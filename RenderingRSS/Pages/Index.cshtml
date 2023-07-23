@@ -1,0 +1,106 @@
+﻿@page
+@model RenderingRSS.Pages.IndexModel
+@{
+    ViewData["Title"] = "RSS Feeds";
+}
+
+<h1>RSS Feeds</h1>
+
+@if (Model.RssItems.Count > 0)
+{
+    <form method="post">
+        @Html.AntiForgeryToken()
+        <div class="card-deck">
+            @foreach (var item in Model.RssItems)
+            {
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <p class="card-text">@Html.Raw(item.Description)</p>
+                        <p class="card-text"><small class="text-muted">@item.PubDate</small></p>
+                        <a href="@item.Link" class="btn btn-primary" target="_blank">Read More</a>
+                        <input type="hidden" name="link" value="@item.Link" />
+                        <a href="#" class="btn btn-success star-button @((item.IsFavorite) ? "favorite" : "")">
+                            @((item.IsFavorite) ? "Unstar" : "Star")
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </form>
+
+    <nav>
+        <ul class="pagination">
+            @if (Model.CurrentPage > 1)
+            {
+                <li class="page-item"><a class="page-link" href="/?pageNumber=@(Model.CurrentPage - 1)">Previous</a></li>
+            }
+
+            @if (Model.CurrentPage > 3)
+            {
+                <li class="page-item"><a class="page-link" href="/?pageNumber=1">1</a></li>
+                <li class="page-item disabled"><a class="page-link">...</a></li>
+            }
+
+            @for (var i = Model.CurrentPage - 2; i <= Model.CurrentPage + 2; i++)
+            {
+                @if (i >= 1 && i <= Model.TotalPages)
+                {
+                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")"><a class="page-link" href="/?pageNumber=@i">@i</a></li>
+                }
+            }
+
+            @if (Model.CurrentPage < Model.TotalPages - 2)
+            {
+                <li class="page-item disabled"><a class="page-link">...</a></li>
+                <li class="page-item"><a class="page-link" href="/?pageNumber=@Model.TotalPages">@Model.TotalPages</a></li>
+            }
+
+            @if (Model.CurrentPage < Model.TotalPages)
+            {
+                <li class="page-item"><a class="page-link" href="/?pageNumber=@(Model.CurrentPage + 1)">Next</a></li>
+            }
+        </ul>
+    </nav>
+}
+else
+{
+    <p>No feed found.</p>
+}
+
+<style>
+    .pagination {
+        display: flex;
+        justify-content: center;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.star-button').on('click', function (event) {
+                event.preventDefault();
+                var link = $(this).siblings('input[name="link"]').val();
+                var starButton = $(this);
+
+                var formData = new FormData();
+                formData.append('link', link);
+
+                fetch('/ToggleFavorite', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.isFavorite) {
+                            starButton.text('Unstar');
+                        } else {
+                            starButton.text('Star');
+                        }
+                    })
+                    .catch(() => {
+                        alert('An error occurred while toggling favorite.');
+                    });
+            });
+        });
+    </script>
+}
